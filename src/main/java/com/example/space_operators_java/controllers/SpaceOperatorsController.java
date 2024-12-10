@@ -1,16 +1,18 @@
-package com.example.space_operators_java;
+package com.example.space_operators_java.controllers;
 
+import com.example.space_operators_java.services.GameService;
+import com.example.space_operators_java.services.WebSocketService;
+import com.example.space_operators_java.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class SOpeController {
+public class SpaceOperatorsController {
     @FXML
     private TextField pseudoField;
     @FXML
@@ -23,17 +25,21 @@ public class SOpeController {
     private ImageView titleImage;
 
     private String playerId;
+
+    private final GameService gameService = GameService.getInstance();
+    private final WebSocketService webSocketService = WebSocketService.getInstance();
+
 //    private WebSocketClient webSocket;
-//    private GameState gameState;
 
     @FXML
     public void initialize() {
-        // Générer un UUID pour le joueur
-        playerId = UUID.randomUUID().toString();
-        uuidLabel.setText("ID: " + playerId);
 
-        // Initialiser la connexion WebSocket
-        initializeWebSocket();
+        // Générer un UUID pour le joueur
+        playerId = gameService.getCurrentPlayer().getId();
+        uuidLabel.setText("ID: " + playerId);
+        pseudoField.textProperty().addListener((obs, old, newVal) ->
+                gameService.getCurrentPlayer().setName(newVal)
+        );
 
         // Charger les images
         try {
@@ -46,6 +52,8 @@ public class SOpeController {
 
     @FXML
     private void onCreateGameClick() {
+        gameService.createGame();
+        SceneNavigator.navigateTo("session-view.fxml");
         try {
 //            String gameId = ApiClient.createGame();
 //            gameState.setGameId(gameId);
@@ -105,28 +113,12 @@ public class SOpeController {
 
     @FXML
     private void onHistoryClick() {
-//        Navigator.navigateTo("history.fxml");
+        SceneNavigator.navigateTo("history-view.fxml");
     }
 
     @FXML
     private void onQuitButtonClick() {
-        Stage stage = (Stage) mainContainer.getScene().getWindow();
-        stage.close();
-    }
-
-    private void initializeWebSocket() {
-//        webSocket = new WebSocketClient("ws://your-server-url");
-//        webSocket.setMessageHandler(message -> {
-//            if (message.getType().equals("players")) {
-//                // Mettre à jour la liste des joueurs
-//                Platform.runLater(() -> {
-//                    gameState.updatePlayers(message.getData().getPlayers());
-//                    if (!gameState.getIsHost()) {
-//                        Navigator.navigateTo("join.fxml");
-//                    }
-//                });
-//            }
-//        });
+        System.exit(0);
     }
 
     private void showError(String title, String content) {
