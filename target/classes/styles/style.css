@@ -1,0 +1,46 @@
+.root {
+    -fx-font-family: "Bowlby One SC";
+    -fx-primary-color: #BA3539;
+}
+
+#uuidLabel {
+    -fx-text-fill: white;
+}
+
+.button-navigation {
+    -fx-background-color: -fx-primary-color;
+    -fx-font-family: "BowlbyOneSC-Regular";
+    -fx-text-fill: white;
+    -fx-padding: 12px 6px;
+    -fx-min-width: 150px;
+}
+
+.button-navigation:hover {
+    -fx-cursor: hand;
+}
+
+.btn-wrapper {
+}
+
+.players-session-wrapper {
+    -fx-min-height: 450px;
+    -fx-border-color: #BA3539;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+}
+
+.players-session-wrapper Label {
+    -fx-font-family: "Bowlby One SC";
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+}
+
+.players-session-wrapper .player-name {
+    -fx-font-size: 20px;
+    -fx-min-width: 30px;
+    -fx-padding: 0 10px;
+}
+
+.status-indicator {
+    -fx-stroke-width: 2;
+}
