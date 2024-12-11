@@ -19,8 +19,11 @@ public class WebSocketService {
     private static WebSocketService instance;
     private WebSocketStompClient stompClient;
     private StompSession stompSession;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String SERVER_URL = "ws://26.34.233.167:8080/ws";
+
+    private String currentGameId;
 
     private WebSocketService() {
         initializeWebSocket();
@@ -32,15 +35,24 @@ public class WebSocketService {
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
     }
 
+    public void subscribeToGame(String gameId) {
+        if (stompSession != null && stompSession.isConnected()) {
+            currentGameId = gameId;
+            System.out.println("Abonnement à la partie: " + gameId);
+            stompSession.subscribe("/topic/game/" + gameId, new CustomStompSessionHandler());
+        }
+    }
+
     public void sendConnectRequest(String gameId, String playerId, String playerName) {
         if (stompSession != null && stompSession.isConnected()) {
             System.out.println("Préparation de la requête de connexion");
 
             try {
-                // Créer l'objet message
                 ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
                 System.out.println("Message à envoyer: " + connectData);
                 stompSession.send("/app/connect", connectData);
+
+                subscribeToGame(gameId);
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
                 e.printStackTrace();
@@ -85,10 +97,10 @@ public class WebSocketService {
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            System.out.println("HandleFrame ->Message reçu: " + payload);
             if (payload instanceof ServerResponse response) {
-                System.out.println("Status: " + response.getStatus());
-                System.out.println("Message: " + response.getMessage());
+                if (response.getMessage().contains(currentGameId)) {
+                    System.out.println("Message de la partie actuelle: " + response.getMessage());
+                }
             }
         }
     }

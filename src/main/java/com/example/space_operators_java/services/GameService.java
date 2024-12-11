@@ -60,7 +60,6 @@ public class GameService {
         this.gameId = gameId;
         players.add(currentPlayer);
 
-        // TODO: Send WebSocket connection request
         WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
     }
 
