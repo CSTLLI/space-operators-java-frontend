@@ -1,5 +1,6 @@
 package com.example.space_operators_java.controllers;
 
+import com.example.space_operators_java.services.ApiService;
 import com.example.space_operators_java.services.GameService;
 import com.example.space_operators_java.services.WebSocketService;
 import com.example.space_operators_java.utils.SceneNavigator;
@@ -28,20 +29,20 @@ public class SpaceOperatorsController {
 
     private final GameService gameService = GameService.getInstance();
     private final WebSocketService webSocketService = WebSocketService.getInstance();
-
-//    private WebSocketClient webSocket;
+    private final ApiService apiService = ApiService.getInstance();
 
     @FXML
     public void initialize() {
+        webSocketService.connect();
 
-        // Générer un UUID pour le joueur
+        // Generate a UUID for the player
         playerId = gameService.getCurrentPlayer().getId();
         uuidLabel.setText("ID: " + playerId);
         pseudoField.textProperty().addListener((obs, old, newVal) ->
                 gameService.getCurrentPlayer().setName(newVal)
         );
 
-        // Charger les images
+        // Load background image
         try {
             Image background = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/assets/game/bg_home.png")));
             backgroundImage.setImage(background);
@@ -76,6 +77,27 @@ public class SpaceOperatorsController {
 
     @FXML
     private void onJoinGameClick() {
+        joinDialog();
+    }
+
+    @FXML
+    private void onHistoryClick() {
+        SceneNavigator.navigateTo("history-view.fxml");
+    }
+
+    @FXML
+    private void onQuitButtonClick() {
+        System.exit(0);
+    }
+
+    private void showError(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void joinDialog() {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Rejoindre une partie");
 
@@ -96,35 +118,11 @@ public class SpaceOperatorsController {
 
         dialog.showAndWait().ifPresent(gameId -> {
             try {
-//                gameState.setGameId(gameId);
-//                gameState.setIsHost(false);
-//
-//                JSONObject connectData = new JSONObject();
-//                connectData.put("gameId", gameId);
-//                connectData.put("playerId", playerId);
-//                connectData.put("playerName", pseudoField.getText());
-//
-//                webSocket.send("connect", connectData);
+                gameService.joinGame(gameId);
+                SceneNavigator.navigateTo("session-view.fxml");
             } catch (Exception e) {
                 showError("Erreur lors de la connexion", e.getMessage());
             }
         });
-    }
-
-    @FXML
-    private void onHistoryClick() {
-        SceneNavigator.navigateTo("history-view.fxml");
-    }
-
-    @FXML
-    private void onQuitButtonClick() {
-        System.exit(0);
-    }
-
-    private void showError(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 }

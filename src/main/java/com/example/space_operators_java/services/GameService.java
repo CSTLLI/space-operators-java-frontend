@@ -1,6 +1,8 @@
 package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.models.Player;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -14,7 +16,7 @@ public class GameService {
     private final Player currentPlayer;
     private String gameId;
     private final ObservableList<Player> players = FXCollections.observableArrayList();
-//    private WebSocketClient webSocket;
+    private final StringProperty role = new SimpleStringProperty();
 
     private GameService() {
         this.currentPlayer = new Player(UUID.randomUUID().toString(), "CSTLLI");
@@ -31,26 +33,35 @@ public class GameService {
         return instance;
     }
 
-//    private void initWebSocket() {
-//        webSocket = new WebSocketClient("ws://your-server-url");
-//        webSocket.setMessageHandler(message -> {
-//            if (message.getType().equals("players")) {
-//                Platform.runLater(() -> updatePlayers(message.getData().getPlayers()));
-//            }
-//        });
-//    }
-
-    public void createGame() {
-        currentPlayer.setHost(true);
-
-        addPlayer(currentPlayer);
+    public String getGameId() {
+        return gameId;
     }
 
-    public void joinGame(String gameId, String playerName) {
+    public void setGameId(String gameId) {
         this.gameId = gameId;
-        currentPlayer.setName(playerName);
+    }
+
+    public void createGame() {
+        try {
+            String gameId = ApiService.getInstance().createGame();
+
+            setGameId(gameId);
+            currentPlayer.setHost(true);
+
+            addPlayer(currentPlayer);
+
+            WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create game", e);
+        }
+    }
+
+    public void joinGame(String gameId) {
+        this.gameId = gameId;
         players.add(currentPlayer);
-        // Send WebSocket connection request
+
+        // TODO: Send WebSocket connection request
+        WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
     }
 
     public ObservableList<Player> getPlayers() {
@@ -65,18 +76,25 @@ public class GameService {
         players.clear();
         for (JsonValue value : newPlayers) {
             JsonObject player = (JsonObject) value;
-            players.add(new Player(
-                    player.getString("id"),
-                    player.getString("name")
-            ));
+            players.add(new Player(player.getString("id"), player.getString("name")));
         }
     }
 
     public void addPlayer(Player player) {
-        System.out.println("Adding player: " + player); // Debug
         if (!players.contains(player)) {
             players.add(player);
-            System.out.println("Players count: " + players.size()); // Debug
         }
+    }
+
+    public final StringProperty roleProperty() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role.set(role);
+    }
+
+    public String getRole() {
+        return role.get();
     }
 }

@@ -19,27 +19,29 @@ import java.util.Objects;
 
 public class SpaceOperatorsSessionController {
     @FXML
+    public Label gameId;
+    @FXML
     private ImageView backgroundImage;
-
+    @FXML
+    private Button startBtn;
     @FXML
     private Button readyBtn;
-
     @FXML
     private VBox playersContainer;
-
     private final GameService gameService = GameService.getInstance();
 
     @FXML
     public void initialize() {
-        // Charger les images
+        // Load background image
         try {
             Image background = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/assets/game/bg_session.png")));
             backgroundImage.setImage(background);
         } catch (Exception e) {
             System.err.println("Erreur lors du chargement des images: " + e.getMessage());
         }
+        gameId.setText("ID de la partie: " + gameService.getGameId());
 
-        // Récupérer les players
+        // Event for players list changes
         gameService.getPlayers().addListener((ListChangeListener<Player>) c -> {
             System.out.println("Players list changed"); // Debug
             playersContainer.getChildren().clear();
@@ -50,12 +52,17 @@ public class SpaceOperatorsSessionController {
             });
         });
 
-        // Initial population
+        // Initial display of players
         gameService.getPlayers().forEach(player -> {
             System.out.println("Adding player to view: " + player.getName()); // Debug
             HBox playerRow = createPlayerRow(player);
             playersContainer.getChildren().add(playerRow);
         });
+
+        // Disable startBtn if not host
+        if (!gameService.getCurrentPlayer().isHost()) {
+            startBtn.setVisible(false);
+        }
     }
 
     private HBox createPlayerRow(Player player) {
@@ -63,16 +70,13 @@ public class SpaceOperatorsSessionController {
         row.setAlignment(Pos.CENTER);
         row.setSpacing(15);
 
-        // Nom du joueur
         Label nameLabel = new Label(player.getName());
         nameLabel.getStyleClass().add("player-name");
 
-        // Indicateur de statut (cercle)
         Circle statusIndicator = new Circle(8);
         statusIndicator.getStyleClass().add("status-indicator");
         updateStatusIndicator(statusIndicator, player.isReady());
 
-        // Créer un binding pour mettre à jour automatiquement l'indicateur
         player.readyProperty().addListener((obs, oldVal, newVal) ->
                 updateStatusIndicator(statusIndicator, newVal));
 
@@ -95,6 +99,7 @@ public class SpaceOperatorsSessionController {
     }
 
     public void onStartGameButtonClick () {
+        SceneNavigator.navigateTo("game-view.fxml");
     }
 
     public void onReadyButtonClick () {

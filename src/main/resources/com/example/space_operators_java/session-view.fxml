@@ -19,7 +19,8 @@
         <VBox fx:id="playersContainer" alignment="TOP_CENTER" spacing="10.0" styleClass="players-session-wrapper"/>
 
         <VBox alignment="BOTTOM_CENTER" spacing="10.0" styleClass="btn-wrapper">
-            <Button text="Démarrer la partie" onAction="#onStartGameButtonClick" styleClass="button-navigation"/>
+            <Label fx:id="gameId"/>
+            <Button fx:id="startBtn" text="Démarrer la partie" onAction="#onStartGameButtonClick" styleClass="button-navigation"/>
             <Button fx:id="readyBtn" text="Pas prêt" onAction="#onReadyButtonClick" styleClass="button-navigation"/>
             <Button text="Retour" onAction="#onBackButtonClick" styleClass="button-navigation"/>
         </VBox>

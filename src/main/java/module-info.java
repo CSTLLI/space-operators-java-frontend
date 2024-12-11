@@ -3,12 +3,19 @@ module com.example.space_operators_java {
     requires javafx.fxml;
     requires javafx.web;
 
+    requires spring.websocket;
+    requires spring.messaging;
+    requires spring.core;
+
+    requires com.fasterxml.jackson.databind;
+
     requires org.controlsfx.controls;
     requires org.kordamp.ikonli.javafx;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
-    requires org.java_websocket;
     requires java.json;
+    requires spring.context;
+    requires java.net.http;
 
     opens com.example.space_operators_java to javafx.fxml;
     exports com.example.space_operators_java;
@@ -18,4 +25,6 @@ module com.example.space_operators_java {
     opens com.example.space_operators_java.utils to javafx.fxml;
     exports com.example.space_operators_java.services;
     opens com.example.space_operators_java.services to javafx.fxml;
+    exports com.example.space_operators_java.models to com.fasterxml.jackson.databind;
+    opens com.example.space_operators_java.models to com.fasterxml.jackson.databind;
 }

@@ -1,9 +1,9 @@
-.root {
+.root, Label, Button {
     -fx-font-family: "Bowlby One SC";
     -fx-primary-color: #BA3539;
 }
 
-#uuidLabel {
+#uuidLabel, Label {
     -fx-text-fill: white;
 }
 

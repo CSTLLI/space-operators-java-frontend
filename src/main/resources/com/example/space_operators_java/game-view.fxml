@@ -6,22 +6,19 @@
 <?import javafx.scene.image.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.example.space_operators_java.controllers.SpaceOperatorsSessionController"
+           fx:controller="com.example.space_operators_java.controllers.SpaceOperatorsGameController"
 >
 
     <ImageView fx:id="backgroundImage" fitWidth="720" fitHeight="1020" preserveRatio="true"/>
 
-    <VBox alignment="CENTER" spacing="10.0">
+    <VBox alignment="CENTER" spacing="20.0">
         <padding>
             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
         </padding>
 
-        <VBox fx:id="playersContainer" alignment="TOP_CENTER" spacing="10.0" styleClass="players-session-wrapper"/>
+        <ImageView fx:id="titleImage" fitWidth="400" fitHeight="100" preserveRatio="true"/>
 
         <VBox alignment="BOTTOM_CENTER" spacing="10.0" styleClass="btn-wrapper">
-            <Label fx:id="gameId"/>
-            <Button fx:id="startBtn" text="Démarrer la partie" onAction="#onStartGameButtonClick" styleClass="button-navigation"/>
-            <Button fx:id="readyBtn" text="Pas prêt" onAction="#onReadyButtonClick" styleClass="button-navigation"/>
             <Button text="Retour" onAction="#onBackButtonClick" styleClass="button-navigation"/>
         </VBox>
     </VBox>

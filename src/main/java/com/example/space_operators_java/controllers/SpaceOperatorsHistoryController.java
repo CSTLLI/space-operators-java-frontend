@@ -15,7 +15,7 @@ public class SpaceOperatorsHistoryController {
 
     @FXML
     public void initialize() {
-        // Charger les images
+        // Load background image
         try {
             Image background = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/assets/game/bg_game_instructor_default.png")));
             backgroundImage.setImage(background);
