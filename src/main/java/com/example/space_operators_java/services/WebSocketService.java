@@ -2,6 +2,7 @@ package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.models.ConnectionData;
 import com.example.space_operators_java.models.Message;
+import com.example.space_operators_java.models.ServerResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -62,13 +63,14 @@ public class WebSocketService {
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             System.out.println("Connecté au serveur WebSocket");
-            session.subscribe("/topic/connections", this);
+            session.subscribe("/topic/connection", this);
             stompSession = session;
         }
 
         @Override
         public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload, Throwable exception) {
-
+            System.out.println("HandleException->Payload: " + new String(payload));
+            System.out.println("HandleException->Exception: " + exception.getMessage());
         }
 
         @Override
@@ -78,12 +80,16 @@ public class WebSocketService {
 
         @Override
         public Type getPayloadType(StompHeaders headers) {
-            return null;
+            return ServerResponse.class;
         }
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-
+            System.out.println("HandleFrame ->Message reçu: " + payload);
+            if (payload instanceof ServerResponse response) {
+                System.out.println("Status: " + response.getStatus());
+                System.out.println("Message: " + response.getMessage());
+            }
         }
     }
 
