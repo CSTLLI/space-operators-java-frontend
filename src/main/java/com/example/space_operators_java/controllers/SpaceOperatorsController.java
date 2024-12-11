@@ -36,8 +36,10 @@ public class SpaceOperatorsController {
         webSocketService.connect();
 
         // Generate a UUID for the player
-        playerId = gameService.getCurrentPlayer().getId();
+        playerId = UUID.randomUUID().toString();
+        gameService.getCurrentPlayer().setId(playerId);
         uuidLabel.setText("ID: " + playerId);
+
         pseudoField.textProperty().addListener((obs, old, newVal) ->
                 gameService.getCurrentPlayer().setName(newVal)
         );

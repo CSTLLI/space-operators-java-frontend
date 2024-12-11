@@ -6,14 +6,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 public class Player {
     private String id;
     private String name;
-    private boolean isReady;
     private boolean isHost;
     private final BooleanProperty ready = new SimpleBooleanProperty(false);
 
-    public Player(String id, String name) {
+    public Player(String name, boolean isReady) {
         this.id = id;
         this.name = name;
-        this.isReady = false;
         this.isHost = false;
     }
 
@@ -51,15 +49,5 @@ public class Player {
 
     public void setHost(boolean host) {
         isHost = host;
-    }
-
-    @Override
-    public String toString() {
-        return "Player{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", isReady=" + isReady +
-                ", isHost=" + isHost +
-                '}';
     }
 }

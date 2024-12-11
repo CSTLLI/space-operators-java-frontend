@@ -2,6 +2,7 @@ package com.example.space_operators_java.controllers;
 
 import com.example.space_operators_java.models.Player;
 import com.example.space_operators_java.services.GameService;
+import com.example.space_operators_java.services.WebSocketService;
 import com.example.space_operators_java.utils.SceneNavigator;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
@@ -95,6 +96,7 @@ public class SpaceOperatorsSessionController {
     }
 
     public void onBackButtonClick() {
+        WebSocketService.getInstance().unsubscribeFromTopics();
         SceneNavigator.navigateTo("home-view.fxml");
     }
 

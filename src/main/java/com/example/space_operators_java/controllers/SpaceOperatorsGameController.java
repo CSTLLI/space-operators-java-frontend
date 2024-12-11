@@ -1,6 +1,7 @@
 package com.example.space_operators_java.controllers;
 
 import com.example.space_operators_java.services.GameService;
+import com.example.space_operators_java.services.WebSocketService;
 import com.example.space_operators_java.utils.SceneNavigator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -53,6 +54,7 @@ public class SpaceOperatorsGameController {
     }
 
     public void onBackButtonClick() {
+        WebSocketService.getInstance().unsubscribeFromTopics();
         SceneNavigator.navigateTo("home-view.fxml");
     }
 }

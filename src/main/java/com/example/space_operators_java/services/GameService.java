@@ -15,15 +15,15 @@ public class GameService {
     private static GameService instance;
     private final Player currentPlayer;
     private String gameId;
-    private final ObservableList<Player> players = FXCollections.observableArrayList();
+    private final ObservableList<Player> playerData = FXCollections.observableArrayList();
     private final StringProperty role = new SimpleStringProperty();
 
     private GameService() {
-        this.currentPlayer = new Player(UUID.randomUUID().toString(), "CSTLLI");
+        this.currentPlayer = new Player("CSTLLI", false);
 
         //mock
-        addPlayer(new Player(UUID.randomUUID().toString(), "Wassim"));
-        addPlayer(new Player(UUID.randomUUID().toString(), "Ismael"));
+//        addPlayer(new Player(UUID.randomUUID().toString(), "Wassim"));
+//        addPlayer(new Player(UUID.randomUUID().toString(), "Ismael"));
     }
 
     public static GameService getInstance() {
@@ -58,13 +58,13 @@ public class GameService {
 
     public void joinGame(String gameId) {
         this.gameId = gameId;
-        players.add(currentPlayer);
+        playerData.add(currentPlayer);
 
         WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
     }
 
     public ObservableList<Player> getPlayers() {
-        return players;
+        return playerData;
     }
 
     public Player getCurrentPlayer() {
@@ -72,16 +72,16 @@ public class GameService {
     }
 
     private void updatePlayers(JsonArray newPlayers) {
-        players.clear();
+        playerData.clear();
         for (JsonValue value : newPlayers) {
             JsonObject player = (JsonObject) value;
-            players.add(new Player(player.getString("id"), player.getString("name")));
+            playerData.add(new Player(player.getString("name"), player.getString("isReady").equals("true")));
         }
     }
 
     public void addPlayer(Player player) {
-        if (!players.contains(player)) {
-            players.add(player);
+        if (!this.playerData.contains(player)) {
+            this.playerData.add(player);
         }
     }
 

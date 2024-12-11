@@ -1,5 +1,6 @@
 package com.example.space_operators_java.controllers;
 
+import com.example.space_operators_java.services.WebSocketService;
 import com.example.space_operators_java.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
@@ -25,6 +26,7 @@ public class SpaceOperatorsHistoryController {
     }
 
     public void onBackButtonClick() {
+        WebSocketService.getInstance().unsubscribeFromTopics();
         SceneNavigator.navigateTo("home-view.fxml");
     }
 }
