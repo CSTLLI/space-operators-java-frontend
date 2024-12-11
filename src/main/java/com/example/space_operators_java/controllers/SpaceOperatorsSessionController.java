@@ -44,10 +44,9 @@ public class SpaceOperatorsSessionController {
 
         // Event for players list changes
         gameService.getPlayers().addListener((ListChangeListener<Player>) c -> {
-            System.out.println("Players list changed"); // Debug
+            System.out.println("Players list changed");
             playersContainer.getChildren().clear();
             gameService.getPlayers().forEach(player -> {
-                System.out.println("Adding updated player to view: " + player.getId()); // Debug
                 HBox playerRow = createPlayerRow(player);
                 playersContainer.getChildren().add(playerRow);
             });
@@ -55,7 +54,7 @@ public class SpaceOperatorsSessionController {
 
         // Initial display of players
         gameService.getPlayers().forEach(player -> {
-            System.out.println("Adding player to view: " + player.getName()); // Debug
+            System.out.println("Adding player to view: " + player.getName());
             HBox playerRow = createPlayerRow(player);
             playersContainer.getChildren().add(playerRow);
         });

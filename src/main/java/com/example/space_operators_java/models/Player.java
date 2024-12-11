@@ -9,7 +9,7 @@ public class Player {
     private boolean isHost;
     private final BooleanProperty ready = new SimpleBooleanProperty(false);
 
-    public Player(String name, boolean isReady) {
+    public Player(String name) {
         this.id = id;
         this.name = name;
         this.isHost = false;

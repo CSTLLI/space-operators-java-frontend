@@ -1,10 +1,7 @@
 package com.example.space_operators_java.services;
 
-import com.example.space_operators_java.models.ConnectionData;
-import com.example.space_operators_java.models.Message;
-import com.example.space_operators_java.models.Player;
-import com.example.space_operators_java.models.ServerResponse;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.example.space_operators_java.models.*;
+import com.example.space_operators_java.models.response.ServerResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
@@ -20,7 +17,6 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WebSocketService {
     private static WebSocketService instance;
@@ -113,48 +109,43 @@ public class WebSocketService {
             return ServerResponse.class;
         }
 
+        @Override
         public void handleFrame(StompHeaders headers, Object payload) {
             try {
-                Message<Object> message = objectMapper.convertValue(payload,
-                        new TypeReference<Message<Object>>() {});
+                ServerResponse response = (ServerResponse) payload;
 
-                switch (message.getType()) {
-                    case "players" -> handlePlayersMessage(message);
-                    case "connection" -> {
-                        if (payload instanceof ServerResponse response) {
-                            System.out.println("Message de connexion: " + response.getMessage());
-                        }
-                    }
+                System.out.println("Type de message: " + response.getType());
+                System.out.println("Données: " + response.getData());
+
+                switch (response.getType()) {
+                    case "players" -> handlePlayersMessage(response.getData());
+                    case "message" -> System.out.println("Message reçu: " + response.getData());
+                    default -> System.out.println("Type non géré: " + response.getType());
                 }
             } catch (Exception e) {
-                System.err.println("Erreur parsing message: " + e.getMessage());
+                System.err.println("Erreur dans handleFrame: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
-        private void handlePlayersMessage(Message<Object> message) {
+        private void handlePlayersMessage(JsonNode dataNode) {
             try {
-                JsonNode dataNode = objectMapper.valueToTree(message.getData());
                 JsonNode playersNode = dataNode.get("players");
-
                 if (playersNode != null && playersNode.isArray()) {
                     Platform.runLater(() -> {
                         GameService gameService = GameService.getInstance();
                         gameService.getPlayers().clear();
 
-                        for (JsonNode playerNode : playersNode) {
-                            String name = playerNode.get("name").asText();
-                            boolean status = playerNode.get("status").asBoolean();
-
-                            Player player = new Player(
-                                    name, status
-                            );
-                            player.setReady(status);
+                        playersNode.forEach(playerNode -> {
+                            String name = playerNode.get("playerName").asText();
+                            Player player = new Player(name);
                             gameService.addPlayer(player);
-                        }
+                        });
                     });
                 }
             } catch (Exception e) {
-                System.err.println("Erreur lors du traitement des joueurs: " + e.getMessage());
+                System.err.println("Erreur traitement players: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

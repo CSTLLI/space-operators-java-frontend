@@ -9,7 +9,6 @@ import javafx.collections.ObservableList;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import java.util.UUID;
 
 public class GameService {
     private static GameService instance;
@@ -19,8 +18,8 @@ public class GameService {
     private final StringProperty role = new SimpleStringProperty();
 
     private GameService() {
-        this.currentPlayer = new Player("CSTLLI", false);
-
+        this.currentPlayer = new Player("CSTLLI");
+        cleanSessionPlayers();
         //mock
 //        addPlayer(new Player(UUID.randomUUID().toString(), "Wassim"));
 //        addPlayer(new Player(UUID.randomUUID().toString(), "Ismael"));
@@ -75,7 +74,7 @@ public class GameService {
         playerData.clear();
         for (JsonValue value : newPlayers) {
             JsonObject player = (JsonObject) value;
-            playerData.add(new Player(player.getString("name"), player.getString("isReady").equals("true")));
+            playerData.add(new Player(player.getString("name")));
         }
     }
 
@@ -83,6 +82,10 @@ public class GameService {
         if (!this.playerData.contains(player)) {
             this.playerData.add(player);
         }
+    }
+
+    public void cleanSessionPlayers() {
+        playerData.clear();
     }
 
     public final StringProperty roleProperty() {

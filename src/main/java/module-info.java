@@ -27,4 +27,6 @@ module com.example.space_operators_java {
     opens com.example.space_operators_java.services to javafx.fxml;
     exports com.example.space_operators_java.models to com.fasterxml.jackson.databind;
     opens com.example.space_operators_java.models to com.fasterxml.jackson.databind;
+    exports com.example.space_operators_java.models.response to com.fasterxml.jackson.databind;
+    opens com.example.space_operators_java.models.response to com.fasterxml.jackson.databind;
 }
