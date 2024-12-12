@@ -53,24 +53,6 @@ public class SpaceOperatorsController {
     private void onCreateGameClick() {
         gameService.createGame();
         SceneNavigator.navigateTo("session-view.fxml");
-        try {
-//            String gameId = ApiClient.createGame();
-//            gameState.setGameId(gameId);
-//            gameState.setIsHost(true);
-//
-//            // Envoyer la requête de connexion via WebSocket
-//            JSONObject connectData = new JSONObject();
-//            connectData.put("gameId", gameId);
-//            connectData.put("playerId", playerId);
-//            connectData.put("playerName", pseudoField.getText());
-//
-//            webSocket.send("connect", connectData);
-//
-//            // Naviguer vers l'écran de création
-//            Navigator.navigateTo("create-game.fxml");
-        } catch (Exception e) {
-            showError("Erreur lors de la création de la partie", e.getMessage());
-        }
     }
 
     @FXML

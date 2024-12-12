@@ -2,10 +2,10 @@ package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.models.*;
 import com.example.space_operators_java.models.response.ServerResponse;
+import com.example.space_operators_java.utils.SceneNavigator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -15,6 +15,9 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +61,31 @@ public class WebSocketService {
                 stompSession.send("/app/connect", connectData);
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Session STOMP non connectée");
+        }
+    }
+
+    public void sendStartRequest(String gameId) {
+        System.out.println("Envoi de la demande de démarrage");
+        if (stompSession != null && stompSession.isConnected()) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.createObjectNode()
+                        .put("gameId", gameId);
+
+                ServerResponse response = new ServerResponse(
+                        "start",
+                        jsonNode
+                );
+
+                System.out.println("Response " + response);
+                stompSession.send("/app/start", response);
+
+            } catch (Exception e) {
+                System.err.println("Erreur lors de l'envoi de la requête de démarrage: " + e.getMessage());
                 e.printStackTrace();
             }
         } else {
@@ -135,6 +163,7 @@ public class WebSocketService {
                 switch (response.getType()) {
                     case "players" -> handlePlayersMessage(response.getData());
                     case "message" -> System.out.println("Message reçu: " + response.getData());
+                    case "start" -> handleStartMessage(response.getData());
                     default -> System.out.println("Type non géré: " + response.getType());
                 }
             } catch (Exception e) {
@@ -162,6 +191,17 @@ public class WebSocketService {
                 }
             } catch (Exception e) {
                 System.err.println("Erreur traitement players: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        private void handleStartMessage(JsonNode dataNode) {
+            try {
+                Platform.runLater(() -> {
+                    SceneNavigator.navigateTo("game-view.fxml");
+                });
+            } catch (Exception e) {
+                System.err.println("Erreur traitement start: " + e.getMessage());
                 e.printStackTrace();
             }
         }

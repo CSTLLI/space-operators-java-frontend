@@ -75,7 +75,11 @@ public class SpaceOperatorsSessionController {
     }
 
     public void onStartGameButtonClick () {
-        SceneNavigator.navigateTo("game-view.fxml");
+        try {
+            WebSocketService.getInstance().sendStartRequest(gameService.getGameId());
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi de la demande de démarrage: " + e.getMessage());
+        }
     }
 
     private HBox createPlayerRow(Player player) {
