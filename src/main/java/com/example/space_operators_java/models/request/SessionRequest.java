@@ -1,11 +1,11 @@
-package com.example.space_operators_java.models;
+package com.example.space_operators_java.models.request;
 
-public class ConnectionData {
+public class SessionRequest {
     private String gameId;
     private String playerId;
     private String playerName;
 
-    public ConnectionData(String gameId, String playerId, String playerName) {
+    public SessionRequest(String gameId, String playerId, String playerName) {
         this.gameId = gameId;
         this.playerId = playerId;
         this.playerName = playerName;

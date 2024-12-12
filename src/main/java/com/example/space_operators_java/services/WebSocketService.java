@@ -1,6 +1,7 @@
 package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.models.*;
+import com.example.space_operators_java.models.request.SessionRequest;
 import com.example.space_operators_java.models.response.ServerResponse;
 import com.example.space_operators_java.utils.SceneNavigator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,9 +16,6 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +27,7 @@ public class WebSocketService {
     private List<StompSession.Subscription> activeSubscriptions = new ArrayList<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String SERVER_URL = "ws://26.34.233.167:8080/ws";
+    private final String SERVER_URL = "ws://26.195.1.69:8080/ws";
 
     private String currentGameId;
 
@@ -57,8 +55,8 @@ public class WebSocketService {
             try {
                 subscribeToGame(gameId);
 
-                ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
-                stompSession.send("/app/connect", connectData);
+                SessionRequest session = new SessionRequest(gameId, playerId, playerName);
+                stompSession.send("/app/connect", session);
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
                 e.printStackTrace();
@@ -116,11 +114,34 @@ public class WebSocketService {
             System.out.println("Deconnexion de la session");
 
             try {
-                ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
-                stompSession.send("/app/disconnect", connectData);
+                SessionRequest session = new SessionRequest(gameId, playerId, playerName);
+                stompSession.send("/app/disconnect", session);
 
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Session STOMP non connectée");
+        }
+    }
+
+    public void sendFinishOperation(String operatorId, boolean success) {
+        if (stompSession != null && stompSession.isConnected()) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.createObjectNode()
+                        .put("operator", operatorId)
+                        .put("success", success);
+
+                ServerResponse response = new ServerResponse(
+                        "finish",
+                        jsonNode
+                );
+
+                stompSession.send("/app/finish", response);
+            } catch (Exception e) {
+                System.err.println("Erreur lors de l'envoi de la fin d'opération: " + e.getMessage());
                 e.printStackTrace();
             }
         } else {
@@ -164,11 +185,26 @@ public class WebSocketService {
                     case "players" -> handlePlayersMessage(response.getData());
                     case "message" -> System.out.println("Message reçu: " + response.getData());
                     case "start" -> handleStartMessage(response.getData());
+                    case "operation" -> handleOperationMessage(response.getData());
+                    case "integrity" -> {
+                        double integrity = response.getData().get("integrity").asDouble();
+                        Platform.runLater(() -> GameService.getInstance().setShipIntegrity(integrity));
+                    }
+                    case "destroyed", "victory", "game-end" ->
+                            Platform.runLater(() -> GameService.getInstance().handleGameEnd(response.getData()));
                     default -> System.out.println("Type non géré: " + response.getType());
                 }
             } catch (Exception e) {
                 System.err.println("Erreur dans handleFrame: " + e.getMessage());
                 e.printStackTrace();
+            }
+        }
+
+        private void handleOperationMessage(JsonNode dataNode) {
+            try {
+                GameService.getInstance().handleOperationMessage(dataNode);
+            } catch (Exception e) {
+                System.err.println("Erreur traitement operation: " + e.getMessage());
             }
         }
 

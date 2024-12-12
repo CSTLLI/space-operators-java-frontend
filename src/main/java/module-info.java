@@ -16,6 +16,7 @@ module com.example.space_operators_java {
     requires java.json;
     requires spring.context;
     requires java.net.http;
+    requires java.compiler;
 
     opens com.example.space_operators_java to javafx.fxml;
     exports com.example.space_operators_java;
@@ -27,6 +28,10 @@ module com.example.space_operators_java {
     opens com.example.space_operators_java.services to javafx.fxml;
     exports com.example.space_operators_java.models to com.fasterxml.jackson.databind;
     opens com.example.space_operators_java.models to com.fasterxml.jackson.databind;
+    exports com.example.space_operators_java.models.request to com.fasterxml.jackson.databind;
+    opens com.example.space_operators_java.models.request to com.fasterxml.jackson.databind;
     exports com.example.space_operators_java.models.response to com.fasterxml.jackson.databind;
     opens com.example.space_operators_java.models.response to com.fasterxml.jackson.databind;
+    exports com.example.space_operators_java.models.operation to com.fasterxml.jackson.databind;
+    opens com.example.space_operators_java.models.operation to com.fasterxml.jackson.databind;
 }
