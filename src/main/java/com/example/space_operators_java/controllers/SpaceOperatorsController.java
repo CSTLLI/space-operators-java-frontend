@@ -25,8 +25,6 @@ public class SpaceOperatorsController {
     @FXML
     private ImageView titleImage;
 
-    private String playerId;
-
     private final GameService gameService = GameService.getInstance();
     private final WebSocketService webSocketService = WebSocketService.getInstance();
     private final ApiService apiService = ApiService.getInstance();
@@ -36,9 +34,7 @@ public class SpaceOperatorsController {
         webSocketService.connect();
 
         // Generate a UUID for the player
-        playerId = UUID.randomUUID().toString();
-        gameService.getCurrentPlayer().setId(playerId);
-        uuidLabel.setText("ID: " + playerId);
+        uuidLabel.setText("ID: " + gameService.getCurrentPlayer().getId());
 
         pseudoField.textProperty().addListener((obs, old, newVal) ->
                 gameService.getCurrentPlayer().setName(newVal)

@@ -19,7 +19,7 @@
         <ImageView fx:id="titleImage" fitWidth="400" fitHeight="100" preserveRatio="true"/>
 
         <VBox alignment="CENTER" spacing="10.0">
-            <TextField fx:id="pseudoField" promptText="Pseudo" text="CSTLLI"/>
+            <TextField fx:id="pseudoField" promptText="Pseudo"/>
             <Label fx:id="uuidLabel"/>
         </VBox>
 

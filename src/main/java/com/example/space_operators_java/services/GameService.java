@@ -6,9 +6,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import java.util.UUID;
 
 public class GameService {
     private static GameService instance;
@@ -18,11 +16,8 @@ public class GameService {
     private final StringProperty role = new SimpleStringProperty();
 
     private GameService() {
-        this.currentPlayer = new Player("CSTLLI");
-        cleanSessionPlayers();
-        //mock
-//        addPlayer(new Player(UUID.randomUUID().toString(), "Wassim"));
-//        addPlayer(new Player(UUID.randomUUID().toString(), "Ismael"));
+        this.currentPlayer = new Player("CSTLLI", UUID.randomUUID().toString(), false);
+        System.out.println("Player ID: " + currentPlayer.getId());
     }
 
     public static GameService getInstance() {
@@ -42,7 +37,7 @@ public class GameService {
 
     public void createGame() {
         try {
-            String gameId = ApiService.getInstance().createGame();
+            String gameId = String.valueOf(ApiService.getInstance().createGame());
 
             setGameId(gameId);
             currentPlayer.setHost(true);
@@ -64,6 +59,8 @@ public class GameService {
 
     public void disconnectGame() {
         WebSocketService.getInstance().sendDisconnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+        getCurrentPlayer().setReady(false);
+        cleanSessionPlayers();
     }
 
     public ObservableList<Player> getPlayers() {
@@ -72,14 +69,6 @@ public class GameService {
 
     public Player getCurrentPlayer() {
         return currentPlayer;
-    }
-
-    private void updatePlayers(JsonArray newPlayers) {
-        playerData.clear();
-        for (JsonValue value : newPlayers) {
-            JsonObject player = (JsonObject) value;
-            playerData.add(new Player(player.getString("name")));
-        }
     }
 
     public void addPlayer(Player player) {

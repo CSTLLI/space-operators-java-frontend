@@ -5,6 +5,7 @@ import com.example.space_operators_java.models.response.ServerResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -50,14 +51,11 @@ public class WebSocketService {
 
     public void sendConnectRequest(String gameId, String playerId, String playerName) {
         if (stompSession != null && stompSession.isConnected()) {
-            System.out.println("Préparation de la requête de connexion");
-
             try {
-                ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
-                System.out.println("Message à envoyer: " + connectData);
-                stompSession.send("/app/connect", connectData);
-
                 subscribeToGame(gameId);
+
+                ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
+                stompSession.send("/app/connect", connectData);
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
                 e.printStackTrace();
@@ -91,7 +89,6 @@ public class WebSocketService {
 
             try {
                 ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
-                System.out.println("Message à envoyer: " + connectData);
                 stompSession.send("/app/disconnect", connectData);
 
             } catch (Exception e) {
@@ -156,7 +153,9 @@ public class WebSocketService {
 
                         playersNode.forEach(playerNode -> {
                             String name = playerNode.get("playerName").asText();
-                            Player player = new Player(name);
+                            String id = playerNode.get("playerId").asText();
+                            boolean status = playerNode.get("ready").asBoolean();
+                            Player player = new Player(name, id, status);
                             gameService.addPlayer(player);
                         });
                     });

@@ -1,12 +1,15 @@
 package com.example.space_operators_java.controllers;
 
 import com.example.space_operators_java.models.Player;
+import com.example.space_operators_java.services.ApiService;
 import com.example.space_operators_java.services.GameService;
 import com.example.space_operators_java.services.WebSocketService;
 import com.example.space_operators_java.utils.SceneNavigator;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -45,6 +48,7 @@ public class SpaceOperatorsSessionController {
         // Event for players list changes
         gameService.getPlayers().addListener((ListChangeListener<Player>) c -> {
             System.out.println("Players list changed");
+            System.out.println("Players: " + gameService.getPlayers());
             playersContainer.getChildren().clear();
             gameService.getPlayers().forEach(player -> {
                 HBox playerRow = createPlayerRow(player);
@@ -54,7 +58,6 @@ public class SpaceOperatorsSessionController {
 
         // Initial display of players
         gameService.getPlayers().forEach(player -> {
-            System.out.println("Adding player to view: " + player.getName());
             HBox playerRow = createPlayerRow(player);
             playersContainer.getChildren().add(playerRow);
         });
@@ -62,35 +65,6 @@ public class SpaceOperatorsSessionController {
         // Disable startBtn if not host
         if (!gameService.getCurrentPlayer().isHost()) {
             startBtn.setVisible(false);
-        }
-    }
-
-    private HBox createPlayerRow(Player player) {
-        HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER);
-        row.setSpacing(15);
-
-        Label nameLabel = new Label(player.getName());
-        nameLabel.getStyleClass().add("player-name");
-
-        Circle statusIndicator = new Circle(8);
-        statusIndicator.getStyleClass().add("status-indicator");
-        updateStatusIndicator(statusIndicator, player.isReady());
-
-        player.readyProperty().addListener((obs, oldVal, newVal) ->
-                updateStatusIndicator(statusIndicator, newVal));
-
-        row.getChildren().addAll(nameLabel, statusIndicator);
-        return row;
-    }
-
-    private void updateStatusIndicator(Circle indicator, boolean isReady) {
-        if (isReady) {
-            indicator.setFill(Color.GREEN);
-            indicator.setStroke(Color.DARKGREEN);
-        } else {
-            indicator.setFill(Color.RED);
-            indicator.setStroke(Color.DARKRED);
         }
     }
 
@@ -104,8 +78,53 @@ public class SpaceOperatorsSessionController {
         SceneNavigator.navigateTo("game-view.fxml");
     }
 
-    public void onReadyButtonClick () {
-        gameService.getCurrentPlayer().setReady(!gameService.getCurrentPlayer().isReady());
-        readyBtn.setText(gameService.getCurrentPlayer().isReady() ? "Prêt" : "Pas Prêt");
+    private HBox createPlayerRow(Player player) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER);
+        row.setSpacing(15);
+
+        Label nameLabel = new Label(player.getName());
+        nameLabel.getStyleClass().add("player-name");
+
+        Circle statusIndicator = new Circle(8);
+        if (player.getId() != null) {
+            statusIndicator.setId("status-" + player.getId());
+        }
+        statusIndicator.getStyleClass().add("status-indicator");
+        System.out.println("Player " + player.getName() + " is ready: " + player.isReady());
+        if (player.isReady()) {
+            statusIndicator.setFill(Color.GREEN);
+            statusIndicator.setStroke(Color.DARKGREEN);
+        } else {
+            statusIndicator.setFill(Color.RED);
+            statusIndicator.setStroke(Color.DARKRED);
+        }
+
+        row.getChildren().addAll(nameLabel, statusIndicator);
+        return row;
+    }
+
+    public void onReadyButtonClick() {
+        Player currentPlayer = gameService.getCurrentPlayer();
+        boolean newReadyStatus = !currentPlayer.isReady();
+
+        try {
+            ApiService.getInstance().setPlayerReady(currentPlayer.getId(), newReadyStatus)
+                    .thenAccept(success -> {
+                        Platform.runLater(() -> {
+                            currentPlayer.setReady(newReadyStatus);
+                            readyBtn.setText(newReadyStatus ? "Prêt" : "Pas Prêt");
+                        });
+                    })
+                    .exceptionally(throwable -> {
+                        Platform.runLater(() -> {
+                            System.err.println("Erreur lors de la mise à jour du statut: " + throwable.getMessage());
+                            currentPlayer.setReady(!newReadyStatus);
+                        });
+                        return null;
+                    });
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi de la demande de prêt: " + e.getMessage());
+        }
     }
 }
