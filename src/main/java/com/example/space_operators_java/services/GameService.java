@@ -62,6 +62,10 @@ public class GameService {
         WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
     }
 
+    public void disconnectGame() {
+        WebSocketService.getInstance().sendDisconnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+    }
+
     public ObservableList<Player> getPlayers() {
         return playerData;
     }

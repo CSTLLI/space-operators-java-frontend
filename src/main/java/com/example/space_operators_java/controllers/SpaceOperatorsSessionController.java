@@ -95,6 +95,7 @@ public class SpaceOperatorsSessionController {
     }
 
     public void onBackButtonClick() {
+        GameService.getInstance().disconnectGame();
         WebSocketService.getInstance().unsubscribeFromTopics();
         SceneNavigator.navigateTo("home-view.fxml");
     }

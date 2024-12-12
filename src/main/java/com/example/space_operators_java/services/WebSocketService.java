@@ -85,6 +85,24 @@ public class WebSocketService {
         currentGameId = null;
     }
 
+    public void sendDisconnectRequest(String gameId, String playerId, String playerName) {
+        if (stompSession != null && stompSession.isConnected()) {
+            System.out.println("Deconnexion de la session");
+
+            try {
+                ConnectionData connectData = new ConnectionData(gameId, playerId, playerName);
+                System.out.println("Message à envoyer: " + connectData);
+                stompSession.send("/app/disconnect", connectData);
+
+            } catch (Exception e) {
+                System.err.println("Erreur lors de l'envoi de la requête de connexion: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Session STOMP non connectée");
+        }
+    }
+
     private class CustomStompSessionHandler implements StompSessionHandler {
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
