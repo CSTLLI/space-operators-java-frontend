@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.*?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.example.space_operators_java.controllers.SpaceOperatorsGameController"
->
-
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.space_operators_java.controllers.SpaceOperatorsGameController">
     <ImageView fx:id="backgroundImage" fitWidth="720" fitHeight="1020" preserveRatio="true"/>
 
-    <VBox alignment="CENTER" spacing="20.0">
-        <padding>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-        </padding>
+    <VBox spacing="20" alignment="CENTER" style="-fx-background-color: transparent;">
+        <!-- En-tête -->
+        <HBox spacing="20" alignment="CENTER" style="-fx-background-color: transparent;">
+            <Label fx:id="turnNumber" style="-fx-text-fill: white; -fx-font-size: 24px;" text="Tour 1"/>
+            <Label fx:id="operatorId" style="-fx-text-fill: white; -fx-font-size: 24px;" text="ID: XXX"/>
+        </HBox>
 
-        <ImageView fx:id="titleImage" fitWidth="400" fitHeight="100" preserveRatio="true"/>
-
-        <VBox alignment="BOTTOM_CENTER" spacing="10.0" styleClass="btn-wrapper">
-            <Button text="Retour" onAction="#onBackButtonClick" styleClass="button-navigation"/>
+        <!-- Intégrité -->
+        <VBox spacing="10" alignment="CENTER" style="-fx-background-color: transparent;">
+            <Label text="Intégrité du vaisseau" style="-fx-text-fill: white; -fx-font-size: 18px;"/>
+            <ProgressBar fx:id="shipIntegrity" progress="1.0" prefWidth="500" style="-fx-accent: #00ff00; -fx-control-inner-background: transparent;"/>
         </VBox>
+
+        <!-- Timer -->
+        <VBox spacing="10" alignment="CENTER" style="-fx-background-color: transparent;">
+            <Label text="Temps restant" style="-fx-text-fill: white; -fx-font-size: 18px;"/>
+            <ProgressBar fx:id="timeRemaining" progress="1.0" prefWidth="500" style="-fx-accent: #0099ff; -fx-control-inner-background: transparent;"/>
+        </VBox>
+
+        <ScrollPane style="-fx-background-color: transparent;">
+            <HBox fx:id="elementsContainer" spacing="15" alignment="CENTER" style="-fx-background-color: transparent;"/>
+        </ScrollPane>
+
+        <Button text="Retour" onAction="#onBackButtonClick"/>
     </VBox>
 </StackPane>
