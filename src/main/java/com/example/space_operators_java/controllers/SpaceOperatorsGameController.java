@@ -144,30 +144,14 @@ public class SpaceOperatorsGameController {
         endGameDialog.setTitle("Fin de la partie");
         endGameDialog.setHeaderText(null);
 
-        // Créer le contenu personnalisé
-        VBox content = new VBox(10);
-        content.setAlignment(Pos.CENTER);
-        content.setPadding(new Insets(20));
-
-        Label messageLabel = new Label("La partie est terminée!");
-        messageLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #ffffff;");
-
-        Label scoreLabel = new Label("Nombre de tours complétés: " + gameService.getTurnsCompleted());
-        scoreLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #ffffff;");
-
-        content.getChildren().addAll(messageLabel, scoreLabel);
-
-        // Personnaliser le style
         DialogPane dialogPane = endGameDialog.getDialogPane();
-        dialogPane.setContent(content);
         dialogPane.getStyleClass().add("custom-dialog");
         dialogPane.setStyle("-fx-background-color: #2c3e50;");
 
-        // Ajouter le bouton retour
         ButtonType returnButton = new ButtonType("Retour au menu", ButtonBar.ButtonData.OK_DONE);
+
         dialogPane.getButtonTypes().add(returnButton);
 
-        // Gérer le clic sur le bouton
         endGameDialog.setResultConverter(buttonType -> {
             if (buttonType == returnButton) {
                 onBackButtonClick();
@@ -180,6 +164,21 @@ public class SpaceOperatorsGameController {
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
+
+        VBox content = new VBox(10);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(20));
+
+        Label messageLabel = new Label("La partie est terminée!");
+        messageLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #ffffff;");
+
+        Label scoreLabel = new Label("Nombre de tours complétés: " + gameService.getTurnsCompleted());
+        scoreLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #ffffff;");
+
+        content.getChildren().addAll(messageLabel, scoreLabel);
+
+        endGameDialog.getDialogPane().setContent(content);
+
         endGameDialog.show();
     }
 

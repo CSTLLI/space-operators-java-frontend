@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 public class ApiService {
     private static ApiService instance;
     private final HttpClient httpClient;
-    private final String BASE_URL = "http://26.195.1.69:8080/api";
+    private final String BASE_URL = "http://26.34.233.167:8080/api";
 
     private ApiService() {
         this.httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_2).connectTimeout(Duration.ofSeconds(10)).build();

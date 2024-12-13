@@ -27,7 +27,7 @@ public class WebSocketService {
     private List<StompSession.Subscription> activeSubscriptions = new ArrayList<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String SERVER_URL = "ws://26.195.1.69:8080/ws";
+    private final String SERVER_URL = "ws://26.34.233.167:8080/ws";
 
     private String currentGameId;
 
@@ -135,11 +135,11 @@ public class WebSocketService {
                         .put("success", success);
 
                 ServerResponse response = new ServerResponse(
-                        "finish",
+                        "finish-operation",
                         jsonNode
                 );
 
-                stompSession.send("/app/finish", response);
+                stompSession.send("/app/finish-operation", response);
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi de la fin d'opération: " + e.getMessage());
                 e.printStackTrace();
@@ -190,7 +190,7 @@ public class WebSocketService {
                         double integrity = response.getData().get("integrity").asDouble();
                         Platform.runLater(() -> GameService.getInstance().setShipIntegrity(integrity));
                     }
-                    case "destroyed", "victory", "game-end" ->
+                    case "destroyed", "victory" ->
                             Platform.runLater(() -> GameService.getInstance().handleGameEnd(response.getData()));
                     default -> System.out.println("Type non géré: " + response.getType());
                 }

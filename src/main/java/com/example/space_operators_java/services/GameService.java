@@ -164,6 +164,10 @@ public class GameService {
         }
     }
 
+    public int getTurnsCompleted() {
+        return turnsCompleted;
+    }
+
     private Result parseResult(JsonNode resultNode) {
         return new Result();
     }
@@ -172,14 +176,10 @@ public class GameService {
         return gameEnded;
     }
 
-    public int getTurnsCompleted() {
-        return turnsCompleted;
-    }
-
     public void handleGameEnd(JsonNode data) {
-//        if (data.has("turns")) {
-//            turnsCompleted = data.get("turns").asInt();
-//        }
+        if (data.has("turns")) {
+            turnsCompleted = data.get("turns").asInt();
+        }
         gameEnded.set(true);
     }
 }
