@@ -134,6 +134,7 @@ public class SpaceOperatorsGameController {
         button.setOnAction(e -> {
             // Logique lors du clic
             System.out.println("Button clicked: " + element.getId());
+            handlePostOperation();
         });
 
         return button;
@@ -184,7 +185,6 @@ public class SpaceOperatorsGameController {
 
     private void updateShipIntegrity(double value) {
         shipIntegrity.setProgress(value / 100.0);
-        // Changer la couleur en fonction de la valeur
         String color = value > 50 ? "#00ff00" : "#ff0000";
         shipIntegrity.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: #333333;");
     }
@@ -194,8 +194,6 @@ public class SpaceOperatorsGameController {
             countdownTimeline.stop();
         }
 
-        duration = 10;
-
         timeRemaining.setProgress(1.0);
 
         Duration time = Duration.seconds(duration);
@@ -204,17 +202,19 @@ public class SpaceOperatorsGameController {
                 new KeyFrame(time, new KeyValue(timeRemaining.progressProperty(), 0))
         );
 
-        countdownTimeline.setOnFinished(event -> handleTimeOut());
+//        countdownTimeline.setOnFinished(event -> handlePostOperation());
         countdownTimeline.play();
     }
 
-    private void handleTimeOut() {
+    private void handlePostOperation() {
         Operation currentOp = gameService.getCurrentOperation();
+        System.out.println("Operation: " + currentOp);
+
         if (currentOp != null && "operator".equals(currentOp.getRole())) {
             try {
                 WebSocketService.getInstance().sendFinishOperation(
                         currentOp.getId(),
-                        false  // échec
+                        currentOp.getResult()
                 );
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi du message de fin: " + e.getMessage());

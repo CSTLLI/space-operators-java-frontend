@@ -1,6 +1,7 @@
 package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.models.*;
+import com.example.space_operators_java.models.operation.Result;
 import com.example.space_operators_java.models.request.SessionRequest;
 import com.example.space_operators_java.models.response.ServerResponse;
 import com.example.space_operators_java.utils.SceneNavigator;
@@ -126,13 +127,13 @@ public class WebSocketService {
         }
     }
 
-    public void sendFinishOperation(String operatorId, boolean success) {
+    public void sendFinishOperation(String operatorId, Result result) {
         if (stompSession != null && stompSession.isConnected()) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonNode = mapper.createObjectNode()
                         .put("operator", operatorId)
-                        .put("success", success);
+                        .put("result", result.toString());
 
                 ServerResponse response = new ServerResponse(
                         "finish-operation",

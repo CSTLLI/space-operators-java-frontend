@@ -32,5 +32,11 @@ public class Operation {
     public String getDescription() { return description; }
     public List<Element> getElements() { return elements; }
     public Result getResult() { return result; }
+
+    // Serializer
+    public String toString() {
+        return String.format("{\"turn\": %d, \"role\": \"%s\", \"id\": \"%s\", \"duration\": %d, \"description\": \"%s\", \"elements\": %s, \"result\": %s}",
+                turn, role, id, duration, description, elements, result);
+    }
 }
 
