@@ -28,7 +28,7 @@ public class WebSocketService {
     private List<StompSession.Subscription> activeSubscriptions = new ArrayList<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String SERVER_URL = "ws://26.34.233.167:8080/ws";
+    private final String SERVER_URL = "ws://localhost:8080/ws";
 
     private String currentGameId;
 
