@@ -51,12 +51,14 @@ public class SpaceOperatorsController {
 
     @FXML
     private void onCreateGameClick() {
+        System.out.println("Creating game... (btn clicked)");
         gameService.createGame();
         SceneNavigator.navigateTo("session-view.fxml");
     }
 
     @FXML
     private void onJoinGameClick() {
+        System.out.println("Joining game... (btn clicked)");
         joinDialog();
     }
 

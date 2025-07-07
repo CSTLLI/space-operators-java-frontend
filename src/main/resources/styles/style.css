@@ -11,6 +11,14 @@
     -fx-font-size: 18px;
 }
 
+.button-link-navigation {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-family: "BowlbyOneSC-Regular";
+    -fx-padding: 12px 6px;
+    -fx-min-width: 150px;
+}
+
 .button-navigation {
     -fx-background-color: -fx-primary-color;
     -fx-font-family: "BowlbyOneSC-Regular";
@@ -93,4 +101,11 @@
 
 .progress-bar .track {
     -fx-background-color: rgba(0, 0, 0, 0.3);
+}
+
+.title-label {
+    -fx-font-size: 24px;
+    -fx-text-fill: white;
+    -fx-padding: 10px;
+    -fx-font-family: "Bowlby One SC";
 }

@@ -5,6 +5,7 @@ import com.example.space_operators_java.models.Player;
 import com.example.space_operators_java.models.operation.Element;
 import com.example.space_operators_java.models.operation.Result;
 import com.fasterxml.jackson.databind.JsonNode;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public class GameService {
     private static GameService instance;
-    private final Player currentPlayer;
+    private Player currentPlayer;
     private String gameId;
     private final ObservableList<Player> playerData = FXCollections.observableArrayList();
     private final ObjectProperty<String> role = new SimpleObjectProperty<>();
@@ -25,9 +26,7 @@ public class GameService {
     private int turnsCompleted = 0;
 
     private GameService() {
-        this.currentPlayer = new Player("CSTLLI", UUID.randomUUID().toString(), false);
-
-        System.out.println("Player ID: " + currentPlayer.getId());
+        ensureCurrentPlayer();
     }
 
     public static GameService getInstance() {
@@ -35,6 +34,44 @@ public class GameService {
             instance = new GameService();
         }
         return instance;
+    }
+
+    public void cleanGameState() {
+        this.gameId = null;
+        this.turnsCompleted = 0;
+
+        Platform.runLater(() -> {
+            this.role.set(null);
+            this.currentOperation.set(null);
+            this.shipIntegrity.set(100.0);
+            this.gameEnded.set(false);
+        });
+
+        this.playerData.clear();
+
+        // S'assurer qu'on a toujours un joueur valide
+        ensureCurrentPlayer();
+    }
+
+    private void ensureCurrentPlayer() {
+        if (this.currentPlayer == null) {
+            this.currentPlayer = new Player("CSTLLI", UUID.randomUUID().toString(), false);
+        } else {
+            this.currentPlayer.setReady(false);
+            this.currentPlayer.setHost(false);
+        }
+    }
+
+    public String getCurrentPlayerId() {
+        return currentPlayer.getId();
+    }
+    public void setCurrentPlayerId(String id) {
+        if (currentPlayer != null) {
+            currentPlayer.setId(id);
+        } else {
+            ensureCurrentPlayer();
+            currentPlayer.setId(id);
+        }
     }
 
     public String getGameId() {
@@ -47,11 +84,13 @@ public class GameService {
 
     public void createGame() {
         try {
-            String gameId = String.valueOf(ApiService.getInstance().createGame());
+            forceCleanState();
 
-            setGameId(gameId);
+            String response = String.valueOf(ApiService.getInstance().createGame());
+            setGameId(response);
+
             currentPlayer.setHost(true);
-
+            currentPlayer.setReady(false);
             addPlayer(currentPlayer);
 
             WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
@@ -61,16 +100,50 @@ public class GameService {
     }
 
     public void joinGame(String gameId) {
-        this.gameId = gameId;
-        playerData.add(currentPlayer);
+        try {
+            forceCleanState();
 
-        WebSocketService.getInstance().sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+            this.gameId = gameId;
+            currentPlayer.setReady(false);
+            addPlayer(currentPlayer);
+
+            WebSocketService webSocketService = WebSocketService.getInstance();
+            if (webSocketService.getStompSession() == null || !webSocketService.getStompSession().isConnected()) {
+                webSocketService.connect();
+            }
+
+            webSocketService.sendConnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to join game", e);
+        }
+    }
+
+    private void forceCleanState() {
+        this.gameId = null;
+        this.turnsCompleted = 0;
+        this.playerData.clear();
+
+        this.role.set(null);
+        this.currentOperation.set(null);
+        this.shipIntegrity.set(100.0);
+        this.gameEnded.set(false);
+
+        if (this.currentPlayer != null) {
+            this.currentPlayer.setReady(false);
+            this.currentPlayer.setHost(false);
+        } else {
+            ensureCurrentPlayer();
+        }
     }
 
     public void disconnectGame() {
-        WebSocketService.getInstance().sendDisconnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
-        getCurrentPlayer().setReady(false);
-        cleanSessionPlayers();
+        try {
+            if (gameId != null && currentPlayer != null) {
+                WebSocketService.getInstance().sendDisconnectRequest(gameId, currentPlayer.getId(), currentPlayer.getName());
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la déconnexion: " + e.getMessage());
+        }
     }
 
     public ObservableList<Player> getPlayers() {
@@ -87,11 +160,41 @@ public class GameService {
         }
     }
 
+    public void updatePlayerInList(String playerId, boolean isReady) {
+        Platform.runLater(() -> {
+            for (Player player : playerData) {
+                if (player.getId().equals(playerId)) {
+                    player.setReady(isReady);
+                    break;
+                }
+            }
+
+            if (currentPlayer != null && currentPlayer.getId().equals(playerId)) {
+                currentPlayer.setReady(isReady);
+            }
+        });
+    }
+
+    public void replacePlayersList(List<Player> newPlayers) {
+        Platform.runLater(() -> {
+            playerData.clear();
+            playerData.addAll(newPlayers);
+
+            if (currentPlayer != null) {
+                for (Player serverPlayer : newPlayers) {
+                    if (serverPlayer.getId().equals(currentPlayer.getId())) {
+                        currentPlayer.setName(serverPlayer.getName());
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
     public void cleanSessionPlayers() {
         playerData.clear();
     }
 
-    // Propriétés
     public ObjectProperty<Operation> currentOperationProperty() {
         return currentOperation;
     }
@@ -130,37 +233,125 @@ public class GameService {
 
     public void handleOperationMessage(JsonNode data) {
         try {
+            System.out.println("=== GAMESERVICE: TRAITEMENT OPÉRATION ===");
+
             int turn = data.get("turn").asInt();
             String role = data.get("role").asText();
             String id = data.get("id").asText();
+            String operatorId = data.get("operatorId").asText();
             int duration = data.get("duration").asInt();
             String description = data.get("description").asText();
 
-            // Construire la liste des éléments
+            System.out.println("Turn: " + turn + ", Role: '" + role + "', ID: " + id);
+            System.out.println("Duration: " + duration + ", Description: " + description);
+
             List<Element> elements = new ArrayList<>();
             JsonNode elementsNode = data.get("elements");
             if (elementsNode != null && elementsNode.isArray()) {
+                System.out.println("Parsing " + elementsNode.size() + " éléments...");
+
                 for (JsonNode elementNode : elementsNode) {
-                    Element element = new Element(
-                            elementNode.get("type").asText(),
-                            elementNode.get("id").asInt(),
-                            elementNode.get("valueType").asText(),
-                            elementNode.get("value").asText()
-                    );
-                    elements.add(element);
+                    try {
+                        String type = elementNode.get("type").asText();
+                        int elementId = elementNode.get("id").asInt();
+                        String valueType = elementNode.get("valueType").asText();
+
+                        // Parsing robuste de la valeur selon son type
+                        Object value = parseElementValue(elementNode.get("value"), valueType);
+
+                        System.out.println("  Élément: type=" + type + ", id=" + elementId +
+                                ", valueType=" + valueType + ", value=" + value +
+                                " (" + (value != null ? value.getClass().getSimpleName() : "null") + ")");
+
+                        Element element = new Element(type, elementId, valueType, value);
+                        elements.add(element);
+                    } catch (Exception e) {
+                        System.err.println("Erreur parsing élément: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            // Construire l'objet Result
             Result result = parseResult(data.get("result"));
 
-            // Créer et définir la nouvelle opération
-            Operation operation = new Operation(turn, role, id, duration, description, elements, result);
-            setCurrentOperation(operation);
-            setRole(role);
+            Operation operation = new Operation(turn, role, id, operatorId, duration, description, elements, result);
+
+            System.out.println("=== OPÉRATION CRÉÉE ===");
+            System.out.println("Rôle final: '" + operation.getRole() + "'");
+            System.out.println("Nombre d'éléments: " + operation.getElements().size());
+
+            // Mettre à jour sur le thread JavaFX
+            Platform.runLater(() -> {
+                setCurrentOperation(operation);
+                setRole(role);
+                System.out.println("✅ Opération définie dans GameService avec rôle: " + role);
+            });
 
         } catch (Exception e) {
-            System.err.println("Erreur lors du parsing de l'opération: " + e.getMessage());
+            System.err.println("Erreur lors du parsing de l'operation: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Parse la valeur d'un élément selon son type
+     */
+    private Object parseElementValue(JsonNode valueNode, String valueType) {
+        if (valueNode == null || valueNode.isNull()) {
+            return null;
+        }
+
+        try {
+            return switch (valueType.toLowerCase()) {
+                case "color" -> {
+                    // Pour les couleurs, retourner la chaîne directement
+                    if (valueNode.isTextual()) {
+                        yield valueNode.asText();
+                    } else {
+                        yield valueNode.toString();
+                    }
+                }
+                case "boolean" -> {
+                    if (valueNode.isBoolean()) {
+                        yield valueNode.asBoolean();
+                    } else if (valueNode.isTextual()) {
+                        String text = valueNode.asText().toLowerCase();
+                        yield "true".equals(text) || "on".equals(text) || "1".equals(text);
+                    } else if (valueNode.isNumber()) {
+                        yield valueNode.asInt() == 1;
+                    } else {
+                        yield false;
+                    }
+                }
+                case "number", "integer" -> {
+                    if (valueNode.isNumber()) {
+                        yield valueNode.asInt();
+                    } else if (valueNode.isTextual()) {
+                        try {
+                            yield Integer.parseInt(valueNode.asText());
+                        } catch (NumberFormatException e) {
+                            System.err.println("Impossible de parser '" + valueNode.asText() + "' comme nombre");
+                            yield 0;
+                        }
+                    } else {
+                        yield 0;
+                    }
+                }
+                case "string", "text" -> {
+                    yield valueNode.asText();
+                }
+                default -> {
+                    // Par défaut, retourner la valeur comme string
+                    if (valueNode.isTextual()) {
+                        yield valueNode.asText();
+                    } else {
+                        yield valueNode.toString();
+                    }
+                }
+            };
+        } catch (Exception e) {
+            System.err.println("Erreur parsing valeur: " + e.getMessage());
+            return valueNode.asText(); // Fallback
         }
     }
 

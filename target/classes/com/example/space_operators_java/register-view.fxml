@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.example.space_operators_java.controllers.SpaceOperatorsRegisterController"
+>
+
+    <ImageView fx:id="backgroundImage" fitWidth="720" fitHeight="1080" preserveRatio="true"/>
+
+    <VBox alignment="CENTER" spacing="20.0">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        </padding>
+
+        <ImageView fx:id="titleImage" fitWidth="400" fitHeight="100" preserveRatio="true"/>
+
+        <Label text="Inscription" styleClass="title-label"/>
+
+        <VBox alignment="CENTER" spacing="10.0">
+            <Label text="Email"/>
+            <TextField fx:id="emailField" promptText="Email"/>
+        </VBox>
+
+        <VBox alignment="CENTER" spacing="10.0">
+            <Label text="Mot de passe"/>
+            <TextField fx:id="passwordField" promptText="Mot de passe"/>
+        </VBox>
+
+        <VBox alignment="CENTER" spacing="10.0">
+            <Button text="S'inscrire" onAction="#onRegisterClick" styleClass="button-navigation"/>
+            <Button text="Aller à la page Connexion" onAction="#onGoingToLoginPageClick" styleClass="button-link-navigation"/>
+        </VBox>
+    </VBox>
+</StackPane>

@@ -15,7 +15,7 @@ public class SpaceOperatorsApplication extends Application {
             if (fontUrl != null) {
                 Font.loadFont(fontUrl, 12);
             } else {
-                System.err.println("Police personnalisée non trouvée");
+                System.err.println("Police personnalisee non trouvee");
             }
         } catch (IOException e) {
             System.err.println("Erreur lors du chargement de la police : " + e.getMessage());
@@ -25,7 +25,7 @@ public class SpaceOperatorsApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         try {
-            // Debug: vérifions d'abord les chemins
+            // Debug: verifions d'abord les chemins
             SceneNavigator.checkPath();
 
             // Configuration initiale
@@ -36,9 +36,9 @@ public class SpaceOperatorsApplication extends Application {
             SceneNavigator.setMainStage(stage);
 
             // Navigation vers la vue initiale
-            SceneNavigator.navigateTo("home-view.fxml");
+            SceneNavigator.navigateTo("login-view.fxml");
 
-            // Récupération de la scène
+            // Recuperation de la scène
             Scene scene = SceneNavigator.getCurrentScene();
 
             // Chargement de la police
@@ -51,14 +51,14 @@ public class SpaceOperatorsApplication extends Application {
                 if (cssUrl != null) {
                     scene.getStylesheets().add(cssUrl.toExternalForm());
                 } else {
-                    System.err.println("Fichier CSS non trouvé: " + cssPath);
+                    System.err.println("Fichier CSS non trouve: " + cssPath);
                 }
             }
 
             stage.show();
 
         } catch (Exception e) {
-            System.err.println("Erreur au démarrage de l'application");
+            System.err.println("Erreur au demarrage de l'application");
             e.printStackTrace();
         }
     }

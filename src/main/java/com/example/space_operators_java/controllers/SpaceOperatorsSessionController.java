@@ -9,7 +9,6 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -36,33 +35,37 @@ public class SpaceOperatorsSessionController {
 
     @FXML
     public void initialize() {
-        // Load background image
         try {
             Image background = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/assets/game/bg_session.png")));
             backgroundImage.setImage(background);
         } catch (Exception e) {
             System.err.println("Erreur lors du chargement des images: " + e.getMessage());
         }
+
         gameId.setText("ID de la partie: " + gameService.getGameId());
 
-        // Event for players list changes
+        gameService.getCurrentPlayer().setReady(false);
+        readyBtn.setText("Pas Prêt");
+
         gameService.getPlayers().addListener((ListChangeListener<Player>) c -> {
-            System.out.println("Players list changed");
-            System.out.println("Players: " + gameService.getPlayers());
-            playersContainer.getChildren().clear();
-            gameService.getPlayers().forEach(player -> {
-                HBox playerRow = createPlayerRow(player);
-                playersContainer.getChildren().add(playerRow);
+            System.out.println("LISTENER - Liste joueurs changée");
+            Platform.runLater(() -> {
+                System.out.println("REFRESH - Début rafraîchissement liste");
+                playersContainer.getChildren().clear();
+                gameService.getPlayers().forEach(player -> {
+                    System.out.println("REFRESH - Joueur: " + player.getName() + ", Ready: " + player.isReady());
+                    HBox playerRow = createPlayerRow(player);
+                    playersContainer.getChildren().add(playerRow);
+                });
+                System.out.println("REFRESH - Fin rafraîchissement liste");
             });
         });
 
-        // Initial display of players
         gameService.getPlayers().forEach(player -> {
             HBox playerRow = createPlayerRow(player);
             playersContainer.getChildren().add(playerRow);
         });
 
-        // Disable startBtn if not host
         if (!gameService.getCurrentPlayer().isHost()) {
             startBtn.setVisible(false);
         }
@@ -70,22 +73,21 @@ public class SpaceOperatorsSessionController {
 
     public void onBackButtonClick() {
         GameService.getInstance().disconnectGame();
-        WebSocketService.getInstance().unsubscribeFromTopics();
+        WebSocketService.getInstance().disconnect();
         SceneNavigator.navigateTo("home-view.fxml");
     }
 
-    public void onStartGameButtonClick () {
+    public void onStartGameButtonClick() {
         try {
             WebSocketService.getInstance().sendStartRequest(gameService.getGameId());
         } catch (Exception e) {
-            System.err.println("Erreur lors de l'envoi de la demande de démarrage: " + e.getMessage());
+            System.err.println("Erreur lors de l'envoi de la demande de demarrage: " + e.getMessage());
         }
     }
 
     private HBox createPlayerRow(Player player) {
-        HBox row = new HBox(10);
+        HBox row = new HBox(15);
         row.setAlignment(Pos.CENTER);
-        row.setSpacing(15);
 
         Label nameLabel = new Label(player.getName());
         nameLabel.getStyleClass().add("player-name");
@@ -95,7 +97,7 @@ public class SpaceOperatorsSessionController {
             statusIndicator.setId("status-" + player.getId());
         }
         statusIndicator.getStyleClass().add("status-indicator");
-        System.out.println("Player " + player.getName() + " is ready: " + player.isReady());
+
         if (player.isReady()) {
             statusIndicator.setFill(Color.GREEN);
             statusIndicator.setStroke(Color.DARKGREEN);
@@ -112,23 +114,33 @@ public class SpaceOperatorsSessionController {
         Player currentPlayer = gameService.getCurrentPlayer();
         boolean newReadyStatus = !currentPlayer.isReady();
 
-        try {
-            ApiService.getInstance().setPlayerReady(currentPlayer.getId(), newReadyStatus)
-                    .thenAccept(success -> {
+        WebSocketService webSocketService = WebSocketService.getInstance();
+        if (webSocketService.getStompSession() == null || !webSocketService.getStompSession().isConnected()) {
+            return;
+        }
+
+        System.out.println("AVANT API - Statut: " + currentPlayer.isReady());
+
+        ApiService.getInstance().setPlayerReady(currentPlayer.getId(), newReadyStatus)
+                .thenAccept(success -> {
+                    System.out.println("REPONSE API - Success: " + success);
+                    if (success) {
                         Platform.runLater(() -> {
                             currentPlayer.setReady(newReadyStatus);
                             readyBtn.setText(newReadyStatus ? "Prêt" : "Pas Prêt");
+
+                            // FORCER le rafraîchissement car WebSocket ne fonctionne plus en session 2
+                            playersContainer.getChildren().clear();
+                            gameService.getPlayers().forEach(player -> {
+                                HBox playerRow = createPlayerRow(player);
+                                playersContainer.getChildren().add(playerRow);
+                            });
                         });
-                    })
-                    .exceptionally(throwable -> {
-                        Platform.runLater(() -> {
-                            System.err.println("Erreur lors de la mise à jour du statut: " + throwable.getMessage());
-                            currentPlayer.setReady(!newReadyStatus);
-                        });
-                        return null;
-                    });
-        } catch (Exception e) {
-            System.err.println("Erreur lors de l'envoi de la demande de prêt: " + e.getMessage());
-        }
+                    }
+                })
+                .exceptionally(throwable -> {
+                    System.err.println("Erreur API: " + throwable.getMessage());
+                    return null;
+                });
     }
 }
