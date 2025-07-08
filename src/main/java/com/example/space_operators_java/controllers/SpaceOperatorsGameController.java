@@ -358,19 +358,26 @@ public class SpaceOperatorsGameController {
         button.setPrefHeight(50);
 
         // Gestion robuste des différents types de valeurs pour les boutons de référence
-        if ("color".equals(element.getValueType()) && element.getValue() != null) {
-            // Bouton coloré de référence
-            String color = element.getValue().toString();
-            button.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #FFD700; -fx-border-width: 3px;");
+        String valueStr = element.getValue() != null ? element.getValue().toString() : null;
 
-            // Afficher un nom plus descriptif selon la couleur
-            String colorName = getColorName(color);
-            button.setText("RÉFÉRENCE\n" + colorName + " (" + element.getId() + ")");
+        if (valueStr != null && valueStr.startsWith("#")) {
+            // Bouton coloré de référence - value contient le code hexadécimal
+            String colorCode = valueStr;
+            String colorName = element.getValueType(); // Le nom de la couleur est dans valueType
 
-            System.out.println("Bouton de référence créé - Couleur: " + color + " (" + colorName + "), ID: " + element.getId());
-        } else if (element.getValue() != null) {
+            button.setStyle("-fx-background-color: " + colorCode + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #FFD700; -fx-border-width: 3px;");
+
+            // Afficher le nom de la couleur avec indication de référence
+            if (colorName != null && !colorName.trim().isEmpty()) {
+                button.setText("RÉFÉRENCE\n" + colorName + " (" + element.getId() + ")");
+            } else {
+                button.setText("RÉFÉRENCE\nBouton " + element.getId());
+            }
+
+            System.out.println("Bouton de référence créé - Couleur: " + colorCode + " (" + colorName + "), ID: " + element.getId());
+        } else if (valueStr != null) {
             // Bouton avec texte de référence
-            button.setText("RÉFÉRENCE\n" + element.getValue().toString());
+            button.setText("RÉFÉRENCE\n" + valueStr);
             button.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #FFD700; -fx-border-width: 3px;");
         } else {
             // Valeur par défaut de référence
@@ -438,25 +445,43 @@ public class SpaceOperatorsGameController {
         button.setPrefWidth(150);
         button.setPrefHeight(50);
 
+        System.out.println("DEBUG createButton - ID: " + element.getId() +
+                ", Value: " + element.getValue() +
+                ", ValueType: " + element.getValueType());
+
         // Gestion robuste des différents types de valeurs
-        if ("color".equals(element.getValueType()) && element.getValue() != null) {
-            // Bouton coloré
-            String color = element.getValue().toString();
-            button.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-font-weight: bold;");
-            button.setText("Bouton " + element.getId());
-        } else if (element.getValue() != null) {
-            // Bouton avec texte
-            button.setText(element.getValue().toString());
+        String valueStr = element.getValue() != null ? element.getValue().toString() : null;
+
+        if (valueStr != null && valueStr.startsWith("#")) {
+            // Bouton coloré - value contient le code hexadécimal
+            String colorCode = valueStr;
+            String colorName = element.getValueType(); // Le nom de la couleur est dans valueType
+
+            button.setStyle("-fx-background-color: " + colorCode + "; -fx-text-fill: white; -fx-font-weight: bold;");
+
+            // Afficher le nom de la couleur (valueType) sur le bouton
+            if (colorName != null && !colorName.trim().isEmpty()) {
+                button.setText(colorName);
+            } else {
+                button.setText("Bouton " + element.getId());
+            }
+
+            System.out.println("✅ Bouton coloré créé - Couleur: " + colorCode + " (" + colorName + "), ID: " + element.getId());
+        } else if (valueStr != null) {
+            // Bouton avec texte (ancien comportement)
+            button.setText(valueStr);
             button.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;");
+            System.out.println("Bouton texte créé - Texte: " + valueStr + ", ID: " + element.getId());
         } else {
             // Valeur par défaut
             button.setText("Bouton " + element.getId());
-            button.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
+            button.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;");
+            System.out.println("Bouton par défaut créé - ID: " + element.getId());
         }
 
         if (interactive) {
             button.setOnAction(e -> {
-                System.out.println("Button clicked: " + element.getId() + " (value: " + element.getValue() + ")");
+                System.out.println("Button clicked: " + element.getId() + " (value: " + element.getValue() + ", type: " + element.getValueType() + ")");
                 handleElementInteraction(element);
             });
 
