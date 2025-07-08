@@ -2,6 +2,8 @@ package com.example.space_operators_java.services;
 
 import com.example.space_operators_java.dtos.LoginDTO;
 import com.example.space_operators_java.dtos.LoginResponseDTO;
+import com.example.space_operators_java.dtos.PlayerProfileDTO;
+import com.example.space_operators_java.dtos.RegisterDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -97,7 +99,62 @@ public class ApiService {
     }
 
     /**
-     * Get current user information
+     * Register method - creates a new user account
+     */
+    public CompletableFuture<String> register(String email, String password, String playerName) {
+        try {
+            // Créer un DTO pour l'inscription (vous devrez créer cette classe)
+            RegisterDTO registerDTO = new RegisterDTO(email, password, playerName);
+            String requestBody = mapper.writeValueAsString(registerDTO);
+
+            System.out.println("=== REGISTER REQUEST ===");
+            System.out.println("URL: " + BASE_URL + "/auth/register");
+            System.out.println("Email: " + email);
+            System.out.println("Player Name: " + playerName);
+            System.out.println("Request Body: " + requestBody);
+            System.out.println("========================");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/auth/register"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(response -> {
+                        System.out.println("=== REGISTER RESPONSE ===");
+                        System.out.println("Status Code: " + response.statusCode());
+                        System.out.println("Response Body: " + response.body());
+                        System.out.println("=========================");
+
+                        if (response.statusCode() == 200 || response.statusCode() == 201) {
+                            return response.body();
+                        } else if (response.statusCode() == 409) {
+                            throw new RuntimeException("User already exists");
+                        } else if (response.statusCode() == 400) {
+                            throw new RuntimeException("Invalid registration data");
+                        } else {
+                            throw new RuntimeException("Registration failed: " + response.statusCode());
+                        }
+                    })
+                    .exceptionally(throwable -> {
+                        System.err.println("=== REGISTER ERROR ===");
+                        System.err.println("Error: " + throwable.getMessage());
+                        throwable.printStackTrace();
+                        System.err.println("======================");
+                        throw new RuntimeException("Registration failed", throwable);
+                    });
+        } catch (Exception e) {
+            CompletableFuture<String> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+// Remplacez la méthode getCurrentUser() dans votre ApiService par ces deux méthodes :
+
+    /**
+     * Get current user information - returns raw JSON string
      */
     public CompletableFuture<String> getCurrentUser() {
         if (jwtToken == null) {
@@ -107,18 +164,69 @@ public class ApiService {
         }
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/me"))
+                .uri(URI.create(BASE_URL + "/player/profile"))
                 .header("Authorization", "Bearer " + jwtToken)
                 .GET()
                 .build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
+                    System.out.println("=== GET USER PROFILE RESPONSE ===");
+                    System.out.println("Status Code: " + response.statusCode());
+                    System.out.println("Response Body: " + response.body());
+                    System.out.println("==================================");
+
                     if (response.statusCode() == 200) {
                         return response.body();
                     } else {
                         throw new RuntimeException("Failed to get user info: " + response.statusCode());
                     }
+                });
+    }
+
+    /**
+     * Get player profile - returns structured PlayerProfileDTO
+     */
+    public CompletableFuture<PlayerProfileDTO> getPlayerProfile() {
+        if (jwtToken == null) {
+            CompletableFuture<PlayerProfileDTO> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Not authenticated"));
+            return future;
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/player/profile"))
+                .header("Authorization", "Bearer " + jwtToken)
+                .GET()
+                .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    System.out.println("=== GET PLAYER PROFILE RESPONSE ===");
+                    System.out.println("Status Code: " + response.statusCode());
+                    System.out.println("Response Body: " + response.body());
+                    System.out.println("===================================");
+
+                    if (response.statusCode() == 200) {
+                        try {
+                            // Parse the JSON response to extract player profile
+                            PlayerProfileDTO profile = mapper.readValue(response.body(), PlayerProfileDTO.class);
+                            System.out.println("Parsed profile: " + profile);
+                            return profile;
+                        } catch (Exception e) {
+                            System.err.println("Failed to parse player profile response: " + e.getMessage());
+                            throw new RuntimeException("Failed to parse player profile response", e);
+                        }
+                    } else {
+                        throw new RuntimeException("Failed to get player profile: " + response.statusCode());
+                    }
+                })
+                .exceptionally(throwable -> {
+                    System.err.println("=== PLAYER PROFILE ERROR ===");
+                    System.err.println("Error: " + throwable.getMessage());
+                    throwable.printStackTrace();
+                    System.err.println("============================");
+                    throw new RuntimeException("Failed to get player profile", throwable);
                 });
     }
 

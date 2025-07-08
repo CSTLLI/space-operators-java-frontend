@@ -46,7 +46,7 @@ public class SpaceOperatorsGameController {
 
     // Constantes pour les chemins des images
     private final String OPERATOR_BG = "/assets/game/bg_game_operator.png";
-    private final String INSTRUCTOR_BG = "/assets/game/bg_game_instructor.png";
+    private final String INSTRUCTOR_BG = "/assets/game/bg_game_instructor_default.png";
 
 // Dans votre SpaceOperatorsGameController, améliorez la méthode initialize
 
@@ -535,7 +535,7 @@ public class SpaceOperatorsGameController {
         // - Envoyer des données via WebSocket
 
         // Exemple: terminer l'opération après interaction
-        handlePostOperation();
+        handlePostOperation(element.getId());
     }
 
     private void createEndGameDialog() {
@@ -606,7 +606,7 @@ public class SpaceOperatorsGameController {
         }
     }
 
-    private void handlePostOperation() {
+    private void handlePostOperation(int elementId) {
         Operation currentOp = gameService.getCurrentOperation();
         System.out.println("Operation terminée: " + currentOp);
 
@@ -615,7 +615,7 @@ public class SpaceOperatorsGameController {
                 WebSocketService.getInstance().sendFinishOperation(
                         currentOp.getId(),
                         gameService.getGameId(),
-                        currentOp.getResult()
+                        elementId
                 );
             } catch (Exception e) {
                 System.err.println("Erreur lors de l'envoi du message de fin: " + e.getMessage());
@@ -645,7 +645,7 @@ public class SpaceOperatorsGameController {
             case "#00FFFF" -> "CYAN";
             case "#FFA500" -> "ORANGE";
             case "#800080" -> "VIOLET";
-            default -> "COULEUR "; // Fallback avec ID
+            default -> "COULEUR ";
         };
     }
 }

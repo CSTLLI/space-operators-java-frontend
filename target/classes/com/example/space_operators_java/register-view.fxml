@@ -31,7 +31,12 @@
         </VBox>
 
         <VBox alignment="CENTER" spacing="10.0">
-            <Button text="S'inscrire" onAction="#onRegisterClick" styleClass="button-navigation"/>
+            <Label text="Pseudo"/>
+            <TextField fx:id="playerNameField" promptText="Pseudo"/>
+        </VBox>
+
+        <VBox alignment="CENTER" spacing="10.0">
+            <Button fx:id="registerButton" text="S'inscrire" onAction="#onRegisterClick" styleClass="button-navigation"/>
             <Button text="Aller à la page Connexion" onAction="#onGoingToLoginPageClick" styleClass="button-link-navigation"/>
         </VBox>
     </VBox>

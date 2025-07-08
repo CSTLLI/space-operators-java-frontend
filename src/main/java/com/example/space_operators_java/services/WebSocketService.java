@@ -168,19 +168,21 @@ public class WebSocketService {
         }
     }
 
-    public void sendFinishOperation(String operatorId, String gameId, Result result) {
+    public void sendFinishOperation(String operatorId, String gameId, int elementId) {
         if (stompSession != null && stompSession.isConnected()) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode jsonNode = mapper.createObjectNode()
                         .put("operator", operatorId)
                         .put("gameId", gameId)
-                        .put("result", result.toString());
+                        .put("result", elementId);
 
                 ServerResponse response = new ServerResponse(
                         "finish-operation",
                         jsonNode
                 );
+
+                System.out.println("Payload après avoir cliqué sur un btn:" + jsonNode);
 
                 stompSession.send("/app/finish-operation", response);
             } catch (Exception e) {
